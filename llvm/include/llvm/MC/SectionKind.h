@@ -116,7 +116,9 @@ class SectionKind {
            /// can write to them.  If it chooses to, the dynamic linker can
            /// mark the pages these globals end up on as read-only after it is
            /// done with its relocation phase.
-           ReadOnlyWithRel
+           ReadOnlyWithRel,
+           // Koo
+           Rand
   } K : 8;
 public:
 
@@ -132,6 +134,10 @@ public:
     return K == ReadOnly || isMergeableCString() ||
            isMergeableConst();
   }
+
+  // Koo
+  bool isRand() const { return K == Rand; }
+  
 
   bool isMergeableCString() const {
     return K == Mergeable1ByteCString || K == Mergeable2ByteCString ||
@@ -190,6 +196,11 @@ public:
   static SectionKind getText() { return get(Text); }
   static SectionKind getExecuteOnly() { return get(ExecuteOnly); }
   static SectionKind getReadOnly() { return get(ReadOnly); }
+  
+  // Koo
+  static SectionKind getRand() {return get(Rand); }
+
+  
   static SectionKind getMergeable1ByteCString() {
     return get(Mergeable1ByteCString);
   }

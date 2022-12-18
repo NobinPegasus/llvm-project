@@ -4158,6 +4158,10 @@ bool X86AsmParser::MatchAndEmitATTInstruction(SMLoc IDLoc, unsigned &Opcode,
   else if (ForcedDispEncoding == DispEncoding_Disp32)
     Prefixes |= X86::IP_USE_DISP32;
 
+  // Koo: Set parentID for both inline and full assembly here.
+  Inst.setParent(getSTI().getParentID());
+
+
   if (Prefixes)
     Inst.setFlags(Prefixes);
 

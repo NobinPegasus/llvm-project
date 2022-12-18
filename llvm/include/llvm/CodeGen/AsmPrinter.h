@@ -251,6 +251,9 @@ public:
 
   bool isPositionIndependent() const;
 
+  // Koo
+  const MCAsmInfo *getMCAsmInfo() { return MAI; }
+  
   /// Return true if assembly output should contain comments.
   bool isVerbose() const { return VerboseAsm; }
 
@@ -810,7 +813,7 @@ private:
   /// Emit a blob of inline asm to the output streamer.
   void
   emitInlineAsm(StringRef Str, const MCSubtargetInfo &STI,
-                const MCTargetOptions &MCOptions,
+                const MCTargetOptions &MCOptions, std::string parentID, // Koo
                 const MDNode *LocMDNode = nullptr,
                 InlineAsm::AsmDialect AsmDialect = InlineAsm::AD_ATT) const;
 

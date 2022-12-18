@@ -32,6 +32,11 @@
 #include "llvm/Support/MathExtras.h"
 #include <cstdint>
 
+// Koo
+#include "llvm/CodeGen/MachineJumpTableInfo.h"
+
+
+
 using namespace llvm;
 
 #define DEBUG_TYPE "x86-isel"
@@ -188,6 +193,13 @@ namespace {
              "OptForMinSize implies OptForSize");
 
       SelectionDAGISel::runOnMachineFunction(MF);
+
+      // Koo - Overriden from lib/CodeGen/BranchFolding.cpp
+      MachineJumpTableInfo *MJTI = MF.getJumpTableInfo();
+      if (MJTI)
+        MF.RecordMachineJumpTableInfo(MJTI);
+
+
       return true;
     }
 

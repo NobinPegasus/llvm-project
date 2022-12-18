@@ -47,6 +47,10 @@ class MachineFunction;
 class Module;
 class MCSymbol;
 
+// Koo
+class MCObjectFileInfo;
+
+
 //===----------------------------------------------------------------------===//
 /// This class can be derived from and used by targets to hold private
 /// target-specific information for each Module.  Objects of type are
@@ -122,7 +126,10 @@ class MachineModuleInfo {
   unsigned NextFnNum = 0;
   const Function *LastRequest = nullptr; ///< Used for shortcut/cache.
   MachineFunction *LastResult = nullptr; ///< Used for shortcut/cache.
-
+  
+  // Koo
+  const MCObjectFileInfo *MOFI;
+  
   MachineModuleInfo &operator=(MachineModuleInfo &&MMII) = delete;
 
 public:
@@ -148,6 +155,9 @@ public:
   }
 
   const Module *getModule() const { return TheModule; }
+
+  // Koo
+  const MCObjectFileInfo *getMCObjectFileInfo() const { return MOFI; }
 
   /// Returns the MachineFunction constructed for the IR function \p F.
   /// Creates a new MachineFunction if none exists yet.

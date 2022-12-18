@@ -22,6 +22,10 @@
 #include "llvm/MC/MCValue.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SourceMgr.h"
+
+// Koo
+#include <string>
+#include "llvm/MC/MCAsmInfo.h"
 using namespace llvm;
 
 MCObjectStreamer::MCObjectStreamer(MCContext &Context,
@@ -241,6 +245,17 @@ void MCObjectStreamer::emitCFISections(bool EH, bool Debug) {
   EmitDebugFrame = Debug;
 }
 
+// Koo
+void MCObjectStreamer::EmitRand() {
+    // Nothing to define here: Will define for ELF only at this time
+}
+
+// Koo
+void MCObjectStreamer::setObjTmpName(std::string tmpFileName) {
+    // Nothing to define here: Will define for ELF only at this time
+}
+
+
 void MCObjectStreamer::emitValueImpl(const MCExpr *Value, unsigned Size,
                                      SMLoc Loc) {
   MCStreamer::emitValueImpl(Value, Size, Loc);
@@ -450,6 +465,7 @@ void MCObjectStreamer::emitInstructionImpl(const MCInst &Inst,
     MCInst Relaxed = Inst;
     while (Backend.mayNeedRelaxation(Relaxed, STI))
       Backend.relaxInstruction(Relaxed, STI);
+    Relaxed.setParent(Inst.getParent()); // Koo
     emitInstToData(Relaxed, STI);
     return;
   }
@@ -466,6 +482,16 @@ void MCObjectStreamer::emitInstToFragment(const MCInst &Inst,
   // Always create a new, separate fragment here, because its size can change
   // during relaxation.
   MCRelaxableFragment *IF = new MCRelaxableFragment(Inst, STI);
+  // Koo: Process the parent of this instruction when emitting to a separate fragment
+  std::string ID = Inst.getParent();
+  MCAssembler &Assembler = getAssembler();
+  const MCAsmInfo *MAI = Assembler.getContext().getAsmInfo();
+  
+  if (ID.size() == 0)
+    ID = MAI->latestParentID;
+  IF->addMachineBasicBlockTag(ID);
+  MAI->latestParentID = ID;
+
   insert(IF);
 
   SmallString<128> Code;
@@ -473,6 +499,13 @@ void MCObjectStreamer::emitInstToFragment(const MCInst &Inst,
   getAssembler().getEmitter().encodeInstruction(Inst, VecOS, IF->getFixups(),
                                                 STI);
   IF->getContents().append(Code.begin(), Code.end());
+  // Koo: also see the overwritten function of the derived class; i.e. MCELFStreamer::EmitInstToData()
+  // [Note] At this point MCRelaxableFragment has not been relaxed yet
+  //        Thus updateByteCounter() collect the final bytes at MCAssembler::relaxInstruction()
+  //        after it determines the need of the instruction relaxation and have it done.
+  // errs() << "MCObjectStreamer::EmitInstToData " << Code.size() << "B, STI: " << STI.getByteCtr() << "B\n";
+  IF->getInst().setByteCtr(Code.size());
+  IF->getInst().setFixupCtr(1);
 }
 
 #ifndef NDEBUG

@@ -129,7 +129,11 @@ public:
   MCAssembler *getAssemblerPtr() override;
   /// \name MCStreamer Interface
   /// @{
-
+  
+  // Koo
+  void EmitRand() override;
+  void setObjTmpName(std::string tmpFileName) override;
+  
   void emitLabel(MCSymbol *Symbol, SMLoc Loc = SMLoc()) override;
   virtual void emitLabelAtPos(MCSymbol *Symbol, SMLoc Loc, MCFragment *F,
                               uint64_t Offset);

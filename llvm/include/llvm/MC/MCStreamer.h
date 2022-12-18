@@ -486,6 +486,11 @@ public:
   // add the section we're emitting it to later.
   virtual void emitLabel(MCSymbol *Symbol, SMLoc Loc = SMLoc());
 
+  // Koo
+  virtual void EmitRand() {}
+  virtual void setObjTmpName(std::string tmpFileName) {}
+
+
   virtual void emitEHSymAttributes(const MCSymbol *Symbol, MCSymbol *EHSymbol);
 
   /// Note in the output the specified \p Flag.

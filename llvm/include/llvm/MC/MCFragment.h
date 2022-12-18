@@ -21,6 +21,11 @@
 #include <cstdint>
 #include <utility>
 
+// Koo
+#include <string> 
+#include <list>
+
+
 namespace llvm {
 
 class MCSection;
@@ -60,6 +65,10 @@ private:
   /// The offset of this fragment in its section. This is ~0 until
   /// initialized.
   uint64_t Offset;
+
+  // Koo
+  std::list<std::string> MBBIDs;
+
 
   /// The layout order of this fragment.
   unsigned LayoutOrder;
@@ -167,6 +176,18 @@ public:
   /// and only some fragments have a meaningful implementation.
   void setBundlePadding(uint8_t N) { BundlePadding = N; }
 
+  // Koo
+  uint64_t getOffset() { return Offset; }
+  const std::list<std::string> getAllMBBs() const {return MBBIDs; }
+  void addMachineBasicBlockTag(std::string T) { 
+    for (auto it=MBBIDs.begin(); it!=MBBIDs.end(); ++it)
+      if (T.compare(*it) == 0)
+        return;
+    MBBIDs.push_back(T); 
+  }
+  
+
+
   /// Retrieve the MCSubTargetInfo in effect when the instruction was encoded.
   /// Guaranteed to be non-null if hasInstructions() == true
   const MCSubtargetInfo *getSubtargetInfo() const { return STI; }
@@ -239,9 +260,17 @@ public:
 /// Fragment for data and encoded instructions.
 ///
 class MCDataFragment : public MCEncodedFragmentWithFixups<32, 4> {
+protected:
+  std::string ParentID;
+
 public:
   MCDataFragment(MCSection *Sec = nullptr)
       : MCEncodedFragmentWithFixups<32, 4>(FT_Data, false, Sec) {}
+
+  // Koo: Check out the last parentID in MCAssembler
+  void setLastParentTag(std::string P) { ParentID = P; }
+  const std::string getLastParentTag() const { return ParentID; }
+
 
   static bool classof(const MCFragment *F) {
     return F->getKind() == MCFragment::FT_Data;
@@ -274,6 +303,11 @@ class MCRelaxableFragment : public MCEncodedFragmentWithFixups<8, 1> {
   /// Can we auto pad the instruction?
   bool AllowAutoPadding = false;
 
+  // Koo - The alreadyRelaxedBytes and fixupCtr contain the current relaxed info.
+  //       These values can be re-evaluated
+  unsigned alreadyRelaxedBytes = 0;
+  unsigned fixupCtr = 0;
+
 public:
   MCRelaxableFragment(const MCInst &Inst, const MCSubtargetInfo &STI,
                       MCSection *Sec = nullptr)
@@ -285,6 +319,13 @@ public:
 
   bool getAllowAutoPadding() const { return AllowAutoPadding; }
   void setAllowAutoPadding(bool V) { AllowAutoPadding = V; }
+
+  // Koo
+  unsigned getRelaxedBytes() { return alreadyRelaxedBytes; }
+  void setRelaxedBytes(unsigned RB) { alreadyRelaxedBytes = RB; }
+  unsigned getFixup() { return fixupCtr; }
+  void setFixup(unsigned F) { fixupCtr = F; }
+
 
   static bool classof(const MCFragment *F) {
     return F->getKind() == MCFragment::FT_Relaxable;

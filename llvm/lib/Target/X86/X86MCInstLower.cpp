@@ -2674,6 +2674,23 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
   MCInst TmpInst;
   MCInstLowering.Lower(MI, TmpInst);
 
+  // Koo [Note] While converting MachineInstr into MCInst, it is essential to maintain
+  //            its parent MF and MBB because MCStreamer and MCAssembler do not care 
+  //            them any more semantically. After this phase, fragment and section govern.
+  const MachineBasicBlock *MBB = MI->getParent();
+  unsigned MBBID = MBB->getNumber();
+  unsigned MFID = MBB->getParent()->getFunctionNumber();
+  std::string ID = std::to_string(MFID) + "_" + std::to_string(MBBID);
+  TmpInst.setParent(ID);
+    
+  // Koo [Note] Simple hack: both MF and MAI can be accessible, thus update fallThrough here.
+  const MCAsmInfo *MAI = getMCAsmInfo();
+  if (MAI->canMBBFallThrough.count(ID) == 0)
+     MAI->canMBBFallThrough[ID] = MF->canMBBFallThrough[ID];
+  MAI->latestParentID = ID;
+
+
+
   // Stackmap shadows cannot include branch targets, so we can count the bytes
   // in a call towards the shadow, but must ensure that the no thread returns
   // in to the stackmap shadow.  The only way to achieve this is if the call

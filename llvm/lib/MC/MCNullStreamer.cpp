@@ -46,6 +46,7 @@ namespace {
     void emitCOFFSymbolStorageClass(int StorageClass) override {}
     void emitCOFFSymbolType(int Type) override {}
     void endCOFFSymbolDef() override {}
+    void setObjTmpName(std::string tmpFileName) override {} // Koo
     void
     emitXCOFFSymbolLinkageWithVisibility(MCSymbol *Symbol, MCSymbolAttr Linkage,
                                          MCSymbolAttr Visibility) override {}

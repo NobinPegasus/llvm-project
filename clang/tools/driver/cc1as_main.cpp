@@ -391,6 +391,11 @@ static bool ExecuteAssemblerImpl(AssemblerInvocation &Opts,
 
   MAI->setRelaxELFRelocations(Opts.RelaxELFRelocations);
 
+    
+  // Koo: This path is only taken when assembly file (*.s) is passed (cc1_main.cpp o/w)
+  MAI->isAssemFile = true;
+  
+
   bool IsBinary = Opts.OutputType == AssemblerInvocation::FT_Obj;
   if (Opts.OutputPath.empty())
     Opts.OutputPath = "-";
@@ -512,6 +517,11 @@ static bool ExecuteAssemblerImpl(AssemblerInvocation &Opts,
         Opts.RelaxAll, Opts.IncrementalLinkerCompatible,
         /*DWARFMustBeAtTheEnd*/ true));
     Str.get()->initSections(Opts.NoExecStack, *STI);
+
+    // Koo: The .rand section should be written in doFinalization()@CodeGen/AsmPrinter/AsmPrinter.cpp o/w
+    Str.get()->EmitRand(); 
+
+
   }
 
   // When -fembed-bitcode is passed to clang_as, a 1-byte marker

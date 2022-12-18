@@ -114,6 +114,7 @@ namespace clang {
     const LangOptions &LangOpts;
     std::unique_ptr<raw_pwrite_stream> AsmOutStream;
     ASTContext *Context;
+    CompilerInstance &CI; // Koo
 
     Timer LLVMIRGeneration;
     unsigned LLVMIRGenerationRefCount;
@@ -153,19 +154,21 @@ namespace clang {
                     const TargetOptions &TargetOpts,
                     const LangOptions &LangOpts, const std::string &InFile,
                     SmallVector<LinkModule, 4> LinkModules,
-                    std::unique_ptr<raw_pwrite_stream> OS, LLVMContext &C,
+                    std::unique_ptr<raw_pwrite_stream> OS, LLVMContext &C, CompilerInstance &CI, // Koo: Modified
                     CoverageSourceInfo *CoverageInfo = nullptr)
         : Diags(Diags), Action(Action), HeaderSearchOpts(HeaderSearchOpts),
           CodeGenOpts(CodeGenOpts), TargetOpts(TargetOpts), LangOpts(LangOpts),
           AsmOutStream(std::move(OS)), Context(nullptr),
           LLVMIRGeneration("irgen", "LLVM IR Generation Time"),
-          LLVMIRGenerationRefCount(0),
+          CI(CI), LLVMIRGenerationRefCount(0),  // Koo: Modified
           Gen(CreateLLVMCodeGen(Diags, InFile, std::move(FS), HeaderSearchOpts,
                                 PPOpts, CodeGenOpts, C, CoverageInfo)),
           LinkModules(std::move(LinkModules)) {
       TimerIsEnabled = CodeGenOpts.TimePasses;
       llvm::TimePassesIsEnabled = CodeGenOpts.TimePasses;
       llvm::TimePassesPerRun = CodeGenOpts.TimePassesPerRun;
+      // Koo: set the temp object file name in a current module
+      getModule()->setTmpObjFile(CI.getOutputTempObjFileName());
     }
 
     // This constructor is used in installing an empty BackendConsumer
@@ -1057,7 +1060,7 @@ CodeGenAction::CreateASTConsumer(CompilerInstance &CI, StringRef InFile) {
       BA, CI.getDiagnostics(), &CI.getVirtualFileSystem(),
       CI.getHeaderSearchOpts(), CI.getPreprocessorOpts(), CI.getCodeGenOpts(),
       CI.getTargetOpts(), CI.getLangOpts(), std::string(InFile),
-      std::move(LinkModules), std::move(OS), *VMContext, CoverageInfo));
+      std::move(LinkModules), std::move(OS), *VMContext, CI, CoverageInfo)); // Koo: Modified
   BEConsumer = Result.get();
 
   // Enable generating macro debug info only when debug info is not disabled and

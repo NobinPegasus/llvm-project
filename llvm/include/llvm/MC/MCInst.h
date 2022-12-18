@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <tuple>    // Koo
 
 namespace llvm {
 
@@ -190,6 +191,13 @@ class MCInst {
 
   SMLoc Loc;
   SmallVector<MCOperand, 8> Operands;
+  
+  // Koo
+  mutable unsigned byteCtr = 0;
+  mutable unsigned fixupCtr = 0;
+  std::string ParentID;
+  
+
 
 public:
   MCInst() = default;
@@ -224,6 +232,18 @@ public:
   iterator insert(iterator I, const MCOperand &Op) {
     return Operands.insert(I, Op);
   }
+
+  // Koo: Use the followings when RelaxableFragment ends up not with being relaxed
+  void setByteCtr(unsigned numBytes) const { byteCtr = numBytes; }
+  unsigned getByteCtr() const { return byteCtr; }
+  void setFixupCtr(unsigned numFixups) const { fixupCtr = numFixups; }
+  unsigned getFixupCtr() const { return fixupCtr; }
+  
+  // Koo: Set the parent ID of this MCInst: "MFID_MBBID"
+  void setParent(std::string P) { ParentID = P; }
+  const std::string getParent() const { return ParentID; }
+  
+
 
   void print(raw_ostream &OS, const MCRegisterInfo *RegInfo = nullptr) const;
   void dump() const;

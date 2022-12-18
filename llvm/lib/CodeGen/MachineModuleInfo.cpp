@@ -72,7 +72,7 @@ MachineModuleInfo::MachineModuleInfo(MachineModuleInfo &&MMI)
 MachineModuleInfo::MachineModuleInfo(const LLVMTargetMachine *TM)
     : TM(*TM), Context(TM->getTargetTriple(), TM->getMCAsmInfo(),
                        TM->getMCRegisterInfo(), TM->getMCSubtargetInfo(),
-                       nullptr, &TM->Options.MCOptions, false) {
+                       nullptr, &TM->Options.MCOptions, false), MOFI(TM->getObjFileLowering()) { // Koo
   Context.setObjectFileInfo(TM->getObjFileLowering());
   initialize();
 }
